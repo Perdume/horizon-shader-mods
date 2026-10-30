@@ -1,0 +1,30 @@
+[mod]
+id = "pack_flat"
+version = "0.1.0"
+priority = 100
+
+[compatibility]
+# Nightly 2026-10-30 (ba6344a), the installed version. Same pin as the other bundles.
+horizon_revision = "ba6344a59cb9e755b730dcf02285fc0d33b97d3c"
+
+# A shader pack reads `mc_Entity` (the block id its block.properties gives: water, leaves, glass, torches...)
+# from a table that only flat section draws bind (PackAtlas::terrain_inputs(flat): otherwise every vertex gets
+# vec4(-1)). flat::wanted turns the flat draws on for Metal only, so on Vulkan a pack saw no block ids: BSL's
+# water, waving plants and emissive blocks were all off. This asks for them wherever the device can run them.
+# HORIZON_FLAT_DRAWS, when the player has set it, still decides (0 turns them off).
+[[module]]
+id = "flat_module"
+file = "crates/horizon-client-render/src/gfx/flat.rs"
+name = "pack_flat"
+source = "flat.rs"
+
+[[injection]]
+id = "ask-flat"
+kind = "HEAD"
+cancellable = true
+target = "horizon_client_render::gfx::flat::wanted"
+helper = "wanted.rs"
+bindings = [
+  { name = "adapter", ty = "&wgpu::Adapter", value = "adapter" },
+  { name = "device", ty = "&wgpu::Device", value = "device" },
+]

@@ -1,0 +1,36 @@
+[mod]
+id = "pack_connect"
+version = "0.3.1"
+priority = 100
+
+[compatibility]
+# Nightly 2026-10-30 (ba6344a), the installed version; not yet built. Same pin as the other bundles.
+horizon_revision = "ba6344a59cb9e755b730dcf02285fc0d33b97d3c"
+
+# Packs in the Iris/OptiFine format, as Horizon's loader reads them: the pack stays the original
+# download; its shaders.properties and the functions that unproject with only the diagonal of the
+# projection are put right as they are read (patch.rs).
+[[module]]
+id = "patch"
+file = "crates/horizon-shaders/src/pack.rs"
+name = "pack_connect"
+source = "patch.rs"
+
+# The options a player chose in pack_options' page, written into the pack's files as they are read.
+# options_logic.rs is native/pack-options/logic.rs, byte for byte (tools/check_options_logic.py).
+[[module]]
+id = "options_module"
+file = "crates/horizon-shaders/src/pack.rs"
+name = "pack_connect_options"
+source = "options_logic.rs"
+
+[[injection]]
+id = "read-text"
+kind = "HEAD"
+cancellable = true
+target = "horizon_shaders::pack::Pack::read_text"
+helper = "read_text.rs"
+bindings = [
+  { name = "pack", ty = "&crate::Pack", value = "&*self" },
+  { name = "path", ty = "&str", value = "path" },
+]

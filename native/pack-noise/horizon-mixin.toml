@@ -1,0 +1,33 @@
+[mod]
+id = "pack_noise"
+version = "0.1.0"
+priority = 100
+
+[compatibility]
+# Nightly 2026-10-30 (ba6344a), the installed version; not yet built. Same pin as the other bundles.
+horizon_revision = "ba6344a59cb9e755b730dcf02285fc0d33b97d3c"
+
+# Horizon builds `noisetex` itself (white noise) and never reads the image a pack names with
+# `texture.noise`. Two hooks hand that image over: one where a pack is loaded for drawing (the
+# loader can read the pack's files), one where the renderer makes the texture (it cannot).
+# The image travels in the game folder's .horizon-cache/hz-noise.png.
+
+[[injection]]
+id = "store"
+kind = "HEAD"
+target = "horizon_shaders::post::load_post"
+helper = "store.rs"
+bindings = [
+  { name = "pack", ty = "&crate::Pack", value = "pack" },
+]
+
+[[injection]]
+id = "use"
+kind = "HEAD"
+cancellable = true
+target = "horizon_client_render::gfx::pack_post::noise"
+helper = "use.rs"
+bindings = [
+  { name = "device", ty = "&wgpu::Device", value = "device" },
+  { name = "queue", ty = "&wgpu::Queue", value = "queue" },
+]

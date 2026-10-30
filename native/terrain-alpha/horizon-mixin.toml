@@ -1,0 +1,24 @@
+[mod]
+id = "terrain_alpha"
+version = "0.1.0"
+priority = 100
+
+[compatibility]
+# Nightly 2026-10-30 (ba6344a), the installed version; not yet built. Same pin as the other bundles.
+horizon_revision = "ba6344a59cb9e755b730dcf02285fc0d33b97d3c"
+
+# A pack's gbuffers_terrain (and the shadow pass) draw terrain with `alpha_test: None`, which keeps every
+# fragment, so grass and flowers are drawn as opaque quads. Shader pack programs in the compatibility
+# profile get an alpha test automatically (Iris docs, `alphaTest.<program>`); this gives terrain Horizon's
+# own cut for particles (alpha > 0.1). A pack's own `alphaTest.<program>` still replaces it (post.rs).
+#
+# Hooked where the inputs are put together: PackAtlas::terrain_inputs holds a closure, which the
+# launcher's horizon-mixins refuses (E_UNSUPPORTED_CONTROL_FLOW).
+[[injection]]
+id = "cutout"
+kind = "RETURN"
+target = "horizon_client_render::gfx::Renderer::pack_inputs"
+helper = "cutout.rs"
+bindings = [
+  { name = "inputs", ty = "horizon_shaders::GameInputs", value = "$value" },
+]
